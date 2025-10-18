@@ -1,0 +1,80 @@
+# =============================
+# Node.js
+# =============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# =============================
+# Environment files
+# =============================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Nếu mỗi service có file riêng
+auth/.env
+product/.env
+order/.env
+api-gateway/.env
+
+# =============================
+# Docker
+# =============================
+# Bỏ qua file tạm của Docker
+**/Dockerfile~
+**/docker-compose.override.yml
+.docker/
+docker-compose.override.yml
+docker-compose.yml~
+
+# =============================
+# System / IDE
+# =============================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# =============================
+# Logs & temp
+# =============================
+logs/
+*.log
+npm-debug.log*
+yarn-error.log*
+*.pid
+*.seed
+*.tgz
+coverage/
+.cache/
+tmp/
+temp/
+
+# =============================
+# Build outputs
+# =============================
+dist/
+build/
+out/
+
+# =============================
+# Optional: Test artifacts
+# =============================
+coverage/
+jest-html-reporters-*.html
+test-results/
+
+# =============================
+# Local database or data folders
+# =============================
+data/
+mongo-data/
+rabbitmq-data/
