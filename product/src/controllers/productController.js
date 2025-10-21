@@ -85,7 +85,7 @@ class ProductController {
     }
   }
   
-
+  //code bổ sung (Câu 8)
   async getOrderStatus(req, res, next) {
     const { orderId } = req.params;
     const order = this.ordersMap.get(orderId);

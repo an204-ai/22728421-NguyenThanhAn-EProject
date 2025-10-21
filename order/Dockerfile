@@ -17,4 +17,5 @@ COPY . .
 EXPOSE 3002
 
 # Start service
-CMD ["node", "index.js"]
+CMD ["sh", "-c", "until nc -z rabbitmq 5672; do echo 'Waiting for RabbitMQ...'; sleep 2; done; node index.js"]
+
