@@ -1,0 +1,98 @@
+name: Test, Build & Push Microservices
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-build-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # === Install & Test Auth Service ===
+      - name: Test Auth Service
+        working-directory: ./auth
+        run: |
+          npm install
+          npm test
+
+      # === Install & Test Product Service ===
+      - name: Test Product Service
+        working-directory: ./product
+        run: |
+          npm install
+          npm test
+
+      # === Install & Test Order Service ===
+      - name: Test Order Service
+        working-directory: ./order
+        run: |
+          npm install
+          npm test
+
+      # === Install & Test API Gateway ===
+      - name: Test API Gateway
+        working-directory: ./api-gateway
+        run: |
+          npm install
+          npm test
+
+      # === Only build & push if all tests pass ===
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # --- AUTH ---
+      - name: Build & Push Auth
+        uses: docker/build-push-action@v6
+        with:
+          context: ./auth
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/auth:latest
+            ${{ secrets.DOCKER_USERNAME }}/auth:${{ github.run_number }}
+
+      # --- PRODUCT ---
+      - name: Build & Push Product
+        uses: docker/build-push-action@v6
+        with:
+          context: ./product
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/product:latest
+            ${{ secrets.DOCKER_USERNAME }}/product:${{ github.run_number }}
+
+      # --- ORDER ---
+      - name: Build & Push Order
+        uses: docker/build-push-action@v6
+        with:
+          context: ./order
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/order:latest
+            ${{ secrets.DOCKER_USERNAME }}/order:${{ github.run_number }}
+
+      # --- API GATEWAY ---
+      - name: Build & Push API Gateway
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api-gateway
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
+            ${{ secrets.DOCKER_USERNAME }}/api-gateway:${{ github.run_number }}
