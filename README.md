@@ -26,7 +26,6 @@ Mỗi service hoạt động riêng biệt, có thể mở rộng độc lập, 
 - **MongoDB** (kết nối qua Mongoose)
 - **JWT** cho xác thực người dùng
 - **Docker** & **Docker Compose**
-- **Jest + Supertest** cho kiểm thử tự động
 - **GitHub Actions** cho CI/CD pipeline
 
 ---
