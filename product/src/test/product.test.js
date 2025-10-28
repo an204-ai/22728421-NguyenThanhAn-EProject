@@ -25,7 +25,7 @@ describe("Product Service - Full API Test", () => {
         password: process.env.LOGIN_TEST_PASSWORD,
       });
 
-    authToken = `Bearer ${loginRes.body.token}`;
+    authToken = `Bearer ${authRes.body.token}`;
     app.start();
   });
 
