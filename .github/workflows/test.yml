@@ -1,37 +1,85 @@
-name: CI
-on: [push, pull_request]
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  test:
+  # 🧪 1️⃣ JOB CI - TEST CODE
+  ci:
+    name: Run Tests
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3.2.0
-    - name: Create .env file
-      run: |
-        echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> auth/.env
-        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
-        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-        echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
-        echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
-        echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
-    - name: Install dependencies
-      run: |
-        cd auth
-        npm ci
-        cd ..
-        cd product
-        npm ci
-        cd ..
-        npm ci
-    - name: Run tests for auth
-      run : |
-        cd auth
-        npm test
-    - name: Run tests for product
-      run: |
-        cd auth &&
-        npm start &
-        cd product
-        npm test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env files
+        run: |
+          echo "MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}" >> auth/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
+          echo "MONGODB_PRODUCT_URI=${{ secrets.MONGODB_PRODUCT_URI }}" >> product/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
+          echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
+          echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
+
+      - name: Install dependencies
+        run: |
+          cd auth && npm ci
+          cd ../product && npm ci
+
+      - name: Run tests for auth
+        run: |
+          cd auth
+          npm test
+
+      - name: Run tests for product
+        run: |
+          cd auth && npm start &
+          sleep 5
+          cd ../product
+          npm test
+
+
+  # 🚀 2️⃣ JOB CD - DEPLOY DOCKER HUB (CHỈ CHẠY NẾU CI PASS)
+  cd:
+    name: Deploy to Docker Hub
+    runs-on: ubuntu-latest
+    needs: ci   # chỉ chạy nếu CI pass
+    if: ${{ success() }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Auth image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./auth
+          push: true
+          tags: |
+            thanhan1289/22728421_nguyenthanhan_eproject:auth-latest
+            thanhan1289/22728421_nguyenthanhan_eproject:auth-${{ github.sha }}
+
+      - name: Build and Push Product image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./product
+          push: true
+          tags: |
+            thanhan1289/22728421_nguyenthanhan_eproject:product-latest
+            thanhan1289/22728421_nguyenthanhan_eproject:product-${{ github.sha }}
+
+      - name: Logout Docker Hub
+        run: docker logout
