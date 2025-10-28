@@ -12,37 +12,23 @@ describe("Product Service - Full API Test", () => {
   let createdProductId;
   let orderId;
 
-  // before(async () => {
-  //   app = new App();
-  //   await Promise.all([app.connectDB(), app.setupMessageBroker()]);
-
-  //   // 🔐 Đăng nhập để lấy token từ Auth service
-  //   const authRes = await chai
-  //     .request("http://localhost:3000")
-  //     .post("/login")
-  //     .send({
-  //       username: process.env.LOGIN_TEST_USER,
-  //       password: process.env.LOGIN_TEST_PASSWORD,
-  //     });
-
-  //   authToken = authRes.body.token;
-  //   app.start();
-  // });
-
   before(async () => {
-  const loginRes = await chai
-    .request("http://localhost:3000")
-    .post("/login")
-    .send({
-      username: process.env.LOGIN_TEST_USER,
-      password: process.env.LOGIN_TEST_PASSWORD,
-    });
+    app = new App();
+    await Promise.all([app.connectDB(), app.setupMessageBroker()]);
 
-  expect(loginRes).to.have.status(200);
+    // 🔐 Đăng nhập để lấy token từ Auth service
+    const authRes = await chai
+      .request("http://localhost:3000")
+      .post("/login")
+      .send({
+        username: process.env.LOGIN_TEST_USER,
+        password: process.env.LOGIN_TEST_PASSWORD,
+      });
 
-  // Thêm "Bearer " trước token
-  authToken = `Bearer ${loginRes.body.token}`;
-});
+    authToken = `Bearer ${loginRes.body.token}`;
+    app.start();
+  });
+
   after(async () => {
     await app.disconnectDB();
     app.stop();
