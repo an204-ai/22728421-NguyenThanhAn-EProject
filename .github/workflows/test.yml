@@ -39,7 +39,7 @@ jobs:
         run: |
           cd auth && npm start &
           sleep 5
-          cd ../product
+          cd product
           npm test
 
 
