@@ -13,26 +13,21 @@ describe("Product Service - Full API Test", () => {
   let orderId;
 
   before(async () => {
-  app = new App();
-  await Promise.all([app.connectDB(), app.setupMessageBroker()]);
+    app = new App();
+    await Promise.all([app.connectDB(), app.setupMessageBroker()]);
 
-  // 🔐 Đăng nhập để lấy token
-  const authRes = await chai
-    .request("http://localhost:3000")
-    .post("/login")
-    .send({
-      username: process.env.LOGIN_TEST_USER,
-      password: process.env.LOGIN_TEST_PASSWORD,
-    });
+    // 🔐 Đăng nhập để lấy token từ Auth service
+    const authRes = await chai
+      .request("http://localhost:3000")
+      .post("/login")
+      .send({
+        username: process.env.LOGIN_TEST_USER,
+        password: process.env.LOGIN_TEST_PASSWORD,
+      });
 
-    if (!authRes.body.token) {
-      throw new Error("Auth failed, token missing!");
-    }
-
-    authToken = authRes.body.token; // chỉ lưu token thuần
-    app.start(); // sau khi đã có token
+    authToken = authRes.body.token;
+    app.start();
   });
-
 
   after(async () => {
     await app.disconnectDB();
