@@ -13,13 +13,13 @@ describe("User Authentication", () => {
   before(async () => {
     app = new App();
     await app.connectDB();
-    app.start();
+    //app.start();
   });
 
   after(async () => {
     await app.authController.authService.deleteTestUsers();
     await app.disconnectDB();
-    app.stop();
+    //app.stop();
   });
 
   describe("POST /register", () => {
