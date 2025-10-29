@@ -63,7 +63,7 @@ jobs:
 
     # ---------------- PRODUCT TEST ----------------
     - name: Run product service tests
-      run: docker compose run --rm product npm test
+      run: ./wait-for-it.sh rabbitmq:5672 -- docker compose run --rm product npm test
 
     # ---------------- CLEANUP ----------------
     - name: Stop and remove all containers
