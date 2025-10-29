@@ -47,17 +47,18 @@ jobs:
         echo "⏳ Waiting for MongoDB and services..."
         sleep 10
         docker compose ps
-    - name: Wait for RabbitMQ and MongoDB to be ready
+    - name: Wait for RabbitMQ and MongoDB
       run: |
         echo "⏳ Waiting for RabbitMQ and MongoDB..."
         for i in {1..20}; do
-          docker exec $(docker ps -qf "name=rabbitmq") bash -c "nc -z localhost 5672" \
-          && docker exec $(docker ps -qf "name=mongo") bash -c "nc -z localhost 27017" \
-          && echo "✅ Services are ready!" && exit 0
+          docker exec $(docker ps -qf "name=rabbitmq") rabbitmq-diagnostics ping && \
+          docker exec $(docker ps -qf "name=mongo") mongo --eval "db.adminCommand('ping')" && \
+          echo "✅ Services are ready!" && exit 0
           echo "Still waiting... ($i)"
           sleep 3
         done
         echo "❌ Timeout waiting for services" && exit 1
+
 
 
     # ---------------- AUTH TEST ----------------
