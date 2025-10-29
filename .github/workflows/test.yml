@@ -46,16 +46,18 @@ jobs:
         echo "Waiting for services to be ready..."
         sleep 2
         docker compose ps
+    # KÍCH HOẠT CONTAINER ĐỂ CHẠY UNIT TEST
     - name: Run unit tests (auth)
       run: |
         echo "Running auth service tests..."
-        docker exec auth-service npm test
+        docker exec $(docker ps -qf "name=auth") npm test
 
     - name: Run unit tests (product)
       run: |
         echo "Running product service tests..."
-        docker exec product-service npm test
+        docker exec $(docker ps -qf "name=product") npm test
 
+    # TẮT VÀ XÓA CÁC CONTAINER SAU KHI TEST THÀNH CÔNG
     - name: Stop and remove containers after testing
       run: docker compose down -v
 
