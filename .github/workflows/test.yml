@@ -55,7 +55,7 @@ jobs:
 
     # Dọn RAM sau auth test
     - name: Restart containers for next test
-      run: docker compose restart mongo rabbitmq product
+      run: docker compose restart mongo rabbitmq
 
     - name: Wait before running product tests
       run: sleep 5
