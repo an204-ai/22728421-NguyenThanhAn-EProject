@@ -27,14 +27,14 @@ jobs:
         echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> auth/.env
 
         # PRODUCT SERVICE
-        echo "MONGODB_PRODUCT_URI=mongodb://mongodb:27017/product" > product/.env
+        echo "MONGODB_PRODUCT_URI=mongodb://mongo:27017/product" > product/.env
         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
         echo "RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672" >> product/.env
         echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
         echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
         # ORDER SERVICE
-        echo "MONGODB_ORDER_URI=mongodb://mongodb:27017/order" > order/.env
+        echo "MONGODB_ORDER_URI=mongodb://mongo:27017/order" > order/.env
         echo "RABBITMQ_URI=amqp://rabbitmq:5672" >> order/.env
         echo "RABBITMQ_QUEUE=orders" >> order/.env
         echo "PORT=3002" >> order/.env
