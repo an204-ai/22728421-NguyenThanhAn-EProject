@@ -8,12 +8,13 @@ chai.use(chaiHttp);
 const expect = chai.expect;
 
 describe("Product Service - Full API Test", function () {
-  this.timeout(30000); // tăng timeout vì CI đôi khi chậm
+  this.timeout(60000); // tăng timeout cho CI/CD
   let app;
   let authToken;
   let createdProductId;
   let orderId;
 
+  // ------------------ HELPERS ------------------
   async function waitMongo(uri) {
     let connected = false;
     while (!connected) {
@@ -22,45 +23,53 @@ describe("Product Service - Full API Test", function () {
         connected = true;
       } catch (err) {
         console.log("Waiting for MongoDB...");
-        await new Promise((res) => setTimeout(res, 2000));
+        await new Promise(res => setTimeout(res, 2000));
       }
     }
   }
 
-  before(async () => {
-    app = new App();
-
-    // 🔹 Wait MongoDB trước khi connect
-    await waitMongo(process.env.MONGODB_PRODUCT_URI);
-
-    // 🔹 Kết nối DB và Message Broker
-    await app.connectDB();
-    await app.setupMessageBroker();
-
-    // 🔐 Lấy token từ Auth service
-    let authConnected = false;
-    while (!authConnected) {
+  async function waitAuth() {
+    let token;
+    let connected = false;
+    while (!connected) {
       try {
-        const authRes = await chai
-          .request("http://auth:3000") // dùng hostname service trong Docker Compose
+        const res = await chai
+          .request("http://auth:3000") // hostname container Auth
           .post("/login")
           .send({
             username: process.env.LOGIN_TEST_USER,
             password: process.env.LOGIN_TEST_PASSWORD,
           });
-        authToken = authRes.body.token;
-        authConnected = true;
+        token = res.body.token;
+        connected = true;
       } catch (err) {
         console.log("Waiting for Auth service...");
-        await new Promise((res) => setTimeout(res, 2000));
+        await new Promise(res => setTimeout(res, 2000));
       }
     }
+    return token;
+  }
+
+  // ------------------ HOOKS ------------------
+  before(async () => {
+    app = new App();
+
+    // 1️⃣ Wait MongoDB sẵn sàng
+    await waitMongo(process.env.MONGODB_PRODUCT_URI);
+
+    // 2️⃣ Connect DB và setup RabbitMQ
+    await app.connectDB();
+    await app.setupMessageBroker();
+
+    // 3️⃣ Lấy token từ Auth service
+    authToken = await waitAuth();
   });
 
   after(async () => {
     await app.disconnectDB();
   });
 
+  // ------------------ PRODUCT TEST ------------------
   describe("POST /api/products", () => {
     it("should create a new product", async () => {
       const product = {
@@ -86,6 +95,7 @@ describe("Product Service - Full API Test", function () {
         .post("/api/products")
         .set("Authorization", `Bearer ${authToken}`)
         .send({ description: "Missing required name" });
+
       expect(res).to.have.status(400);
     });
 
@@ -94,6 +104,7 @@ describe("Product Service - Full API Test", function () {
         .request(app.app)
         .post("/api/products")
         .send({ name: "Product no token", price: 10 });
+
       expect(res).to.have.status(401);
     });
   });
@@ -114,6 +125,7 @@ describe("Product Service - Full API Test", function () {
     });
   });
 
+  // ------------------ ORDER TEST ------------------
   describe("POST /api/orders", () => {
     it("should create a new order with product IDs", async () => {
       const res = await chai
