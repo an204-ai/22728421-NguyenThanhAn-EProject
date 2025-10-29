@@ -39,14 +39,8 @@ jobs:
         echo "RABBITMQ_QUEUE=orders" >> order/.env
         echo "PORT=3002" >> order/.env
 
-    - name: Wait for RabbitMQ to be ready
-      run: |
-        echo "Waiting for RabbitMQ to start..."
-        for i in {1..15}; do
-          nc -z rabbitmq 5672 && echo "✅ RabbitMQ is up!" && break
-          echo "⏳ RabbitMQ not ready yet... ($i/15)"
-          sleep 3
-        done
+    - name: Start required containers
+      run: docker compose up -d mongo rabbitmq auth product
 
     - name: Wait for services to start
       run: |
