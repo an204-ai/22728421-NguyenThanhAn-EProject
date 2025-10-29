@@ -40,7 +40,7 @@ jobs:
         echo "PORT=3002" >> order/.env
 
     - name: Start required containers
-      run: docker compose up -d mongo rabbitmq auth
+      run: docker compose up -d mongo rabbitmq auth product
 
     - name: check service run
       run: |
@@ -53,11 +53,17 @@ jobs:
         echo "Running auth service tests..."
         docker exec $(docker ps -qf "name=auth") node --max-old-space-size=256 node_modules/.bin/mocha --timeout 20000 src/test/**/*.test.js --exit || exit 1
 
+    # Dọn RAM sau auth test
+    - name: Restart containers for next test
+      run: docker compose restart mongo rabbitmq product
+
+    - name: Wait for containers
+      run: sleep 15
+
+
     # ---------------- PRODUCT TEST ----------------
-    - name: Run unit tests (product)
-      run: |
-        echo "Running product service tests..."
-        docker compose run --rm product npm test
+    - name: Run product service tests
+      run: docker compose run --rm product npm test
 
     # ---------------- CLEANUP ----------------
     - name: Stop and remove all containers
