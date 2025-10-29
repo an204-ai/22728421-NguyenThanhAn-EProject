@@ -21,7 +21,7 @@ jobs:
     - name: Create environment variable files
       run: |
         # AUTH SERVICE
-        echo "MONGODB_AUTH_URI=mongodb://mongodb:27017/auth" > auth/.env
+        echo "MONGODB_AUTH_URI=mongodb://mongo:27017/auth" > auth/.env
         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
         echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> auth/.env
         echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> auth/.env
