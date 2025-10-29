@@ -46,6 +46,15 @@ jobs:
         echo "Waiting for services to be ready..."
         sleep 2
         docker compose ps
+    - name: Run unit tests (auth)
+      run: |
+        echo "Running auth service tests..."
+        docker exec auth-service npm test
+
+    - name: Run unit tests (product)
+      run: |
+        echo "Running product service tests..."
+        docker exec product-service npm test
 
     - name: Stop and remove containers after testing
       run: docker compose down -v
