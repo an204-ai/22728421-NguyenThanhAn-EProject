@@ -20,11 +20,15 @@ jobs:
     
     - name: Create environment variables file
       run: |
-        echo "MONGODB_AUTH_URI=mongodb://mongodb:27017/auth" > .env.test
-        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.test
-        echo "MONGODB_PRODUCT_URI=mongodb://mongodb:27017/product" >> .env.test
-        echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> .env.test
-        echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> .env.test
+        # AUTH SERVICE
+        echo "MONGODB_AUTH_URI=mongodb://mongodb:27017/auth" > auth/.env
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> auth/.env
+        echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> auth/.env
+        echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> auth/.env
+
+        # PRODUCT SERVICE
+        echo "MONGODB_PRODUCT_URI=mongodb://mongodb:27017/product" > product/.env
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
     
     - name: Start all Docker containers
       run: docker compose up -d
@@ -34,46 +38,35 @@ jobs:
         echo "Waiting for services to be ready..."
         sleep 2
         docker compose ps
-  
-    # - name: Run unit tests (auth)
-    #   run: |
-    #     echo "Running auth service tests..."
-    
-    #     docker exec -e MONGODB_AUTH_URI=mongodb://mongodb:27017/auth_service auth-service npm test
-    
-    # - name: Run unit tests (product)
-    #   run: |
-    #     echo "Running product service tests..."
-    #     docker exec -e AUTH_SERVICE_URL=http://auth-service:3000 -e PRODUCT_SERVICE_URL=http://product-service:3001 product-service npm test
 
     - name: Stop and remove containers after testing
       run: docker compose down -v
 
   deploys:
-      name: deploys
-      runs-on: ubuntu-latest
+    name: deploys
+    runs-on: ubuntu-latest
+    needs: build-and-run   # CHỈ THÊM DÒNG NÀY
     
-      steps:
-      - name: Checkout source code from repository
-        uses: actions/checkout@v4
+    steps:
+    - name: Checkout source code from repository
+      uses: actions/checkout@v4
     
-      - name: Rebuild Docker images for deployment
-        run: docker compose build
+    - name: Rebuild Docker images for deployment
+      run: docker compose build
     
-      - name: Login to Docker Hub registry
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+    - name: Login to Docker Hub registry
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
     
-      - name: Tag and push images to Docker Hub
-        run: |
-          docker tag 22728421-nguyenthanhan-eproject-auth:latest ${{ secrets.DOCKER_USERNAME }}/eproject-auth:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/eproject-auth:latest
-          docker tag 22728421-nguyenthanhan-eproject-product:latest ${{ secrets.DOCKER_USERNAME }}/eproject-product:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/eproject-product:latest
-          docker tag 22728421-nguyenthanhan-eproject-order:latest ${{ secrets.DOCKER_USERNAME }}/eproject-order:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/eproject-order:latest
-          docker tag 22728421-nguyenthanhan-eproject-api-gateway:latest ${{ secrets.DOCKER_USERNAME }}/eproject-api-gateway:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/eproject-api-gateway:latest
-    
+    - name: Tag and push images to Docker Hub
+      run: |
+        docker tag 22728421-nguyenthanhan-eproject-auth:latest ${{ secrets.DOCKER_USERNAME }}/eproject-auth:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/eproject-auth:latest
+        docker tag 22728421-nguyenthanhan-eproject-product:latest ${{ secrets.DOCKER_USERNAME }}/eproject-product:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/eproject-product:latest
+        docker tag 22728421-nguyenthanhan-eproject-order:latest ${{ secrets.DOCKER_USERNAME }}/eproject-order:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/eproject-order:latest
+        docker tag 22728421-nguyenthanhan-eproject-api-gateway:latest ${{ secrets.DOCKER_USERNAME }}/eproject-api-gateway:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/eproject-api-gateway:latest
