@@ -62,8 +62,10 @@ jobs:
 
 
     # ---------------- PRODUCT TEST ----------------
-    - name: Run product service tests
-      run: ./wait-for-it.sh rabbitmq:5672 -- docker compose run --rm product npm test
+    - name: Run unit tests (product)
+      run: |
+        echo "Running product service tests..."
+        docker exec $(docker ps -qf "name=product") node --max-old-space-size=256 node_modules/.bin/mocha --timeout 20000 src/test/**/*.test.js --exit || exit 1
 
     # ---------------- CLEANUP ----------------
     - name: Stop and remove all containers
