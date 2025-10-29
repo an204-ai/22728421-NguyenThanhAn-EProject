@@ -1,75 +1,40 @@
 const chai = require("chai");
 const chaiHttp = require("chai-http");
 const App = require("../app");
-const mongoose = require("mongoose");
+const expect = chai.expect;
 require("dotenv").config();
 
 chai.use(chaiHttp);
-const expect = chai.expect;
 
-describe("Product Service - Full API Test", function () {
-  this.timeout(60000); // tăng timeout cho CI/CD
+describe("Product Service - Full API Test", () => {
   let app;
   let authToken;
   let createdProductId;
   let orderId;
 
-  // ------------------ HELPERS ------------------
-  async function waitMongo(uri) {
-    let connected = false;
-    while (!connected) {
-      try {
-        await mongoose.connect(uri);
-        connected = true;
-      } catch (err) {
-        console.log("Waiting for MongoDB...");
-        await new Promise(res => setTimeout(res, 2000));
-      }
-    }
-  }
-
-  async function waitAuth() {
-    let token;
-    let connected = false;
-    while (!connected) {
-      try {
-        const res = await chai
-          .request("http://auth:3000") // hostname container Auth
-          .post("/login")
-          .send({
-            username: process.env.LOGIN_TEST_USER,
-            password: process.env.LOGIN_TEST_PASSWORD,
-          });
-        token = res.body.token;
-        connected = true;
-      } catch (err) {
-        console.log("Waiting for Auth service...");
-        await new Promise(res => setTimeout(res, 2000));
-      }
-    }
-    return token;
-  }
-
-  // ------------------ HOOKS ------------------
   before(async () => {
     app = new App();
+    await Promise.all([app.connectDB(), app.setupMessageBroker()]);
 
-    // 1️⃣ Wait MongoDB sẵn sàng
-    await waitMongo(process.env.MONGODB_PRODUCT_URI);
+    // 🔐 Đăng nhập để lấy token từ Auth service
+    const authRes = await chai
+      .request("http://localhost:3000")
+      .post("/login")
+      .send({
+        username: process.env.LOGIN_TEST_USER,
+        password: process.env.LOGIN_TEST_PASSWORD,
+      });
 
-    // 2️⃣ Connect DB và setup RabbitMQ
-    await app.connectDB();
-    await app.setupMessageBroker();
-
-    // 3️⃣ Lấy token từ Auth service
-    authToken = await waitAuth();
+    authToken = authRes.body.token;
+    //app.start();
   });
 
   after(async () => {
     await app.disconnectDB();
+    //app.stop();
   });
 
-  // ------------------ PRODUCT TEST ------------------
+  // 🟢 CREATE PRODUCT
   describe("POST /api/products", () => {
     it("should create a new product", async () => {
       const product = {
@@ -86,6 +51,7 @@ describe("Product Service - Full API Test", function () {
 
       expect(res).to.have.status(201);
       expect(res.body).to.have.property("_id");
+      expect(res.body).to.have.property("name", product.name);
       createdProductId = res.body._id;
     });
 
@@ -109,12 +75,14 @@ describe("Product Service - Full API Test", function () {
     });
   });
 
+  // 🟡 GET ALL PRODUCTS
   describe("GET /api/products", () => {
     it("should get all products", async () => {
       const res = await chai
         .request(app.app)
         .get("/api/products")
         .set("Authorization", `Bearer ${authToken}`);
+
       expect(res).to.have.status(200);
       expect(res.body).to.be.an("array");
     });
@@ -125,7 +93,7 @@ describe("Product Service - Full API Test", function () {
     });
   });
 
-  // ------------------ ORDER TEST ------------------
+  // 🔵 CREATE ORDER
   describe("POST /api/orders", () => {
     it("should create a new order with product IDs", async () => {
       const res = await chai
@@ -135,6 +103,9 @@ describe("Product Service - Full API Test", function () {
         .send({ ids: [createdProductId] });
 
       expect(res).to.have.status(201);
+      expect(res.body).to.have.property("status");
+      expect(res.body.status).to.be.oneOf(["pending", "completed"]);
+      expect(res.body).to.have.property("products");
       orderId = res.body.orderId || res.body.id;
     });
 
@@ -147,12 +118,15 @@ describe("Product Service - Full API Test", function () {
     });
   });
 
+  // 🟣 GET ORDER STATUS
   describe("GET /api/orders/:orderId", () => {
     it("should return order status by ID", async () => {
       const res = await chai
         .request(app.app)
         .get(`/api/orders/${orderId}`)
         .set("Authorization", `Bearer ${authToken}`);
+
+      // Order có thể chưa được xử lý xong trong RabbitMQ, nên chỉ cần 200 là pass
       expect(res).to.have.status(200);
       expect(res.body).to.have.property("status");
     });
