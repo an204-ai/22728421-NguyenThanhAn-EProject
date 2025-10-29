@@ -30,6 +30,8 @@ jobs:
         echo "MONGODB_PRODUCT_URI=mongodb://mongodb:27017/product" > product/.env
         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
         echo "RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672" >> product/.env
+        echo "LOGIN_TEST_USER=${{ secrets.LOGIN_TEST_USER }}" >> product/.env
+        echo "LOGIN_TEST_PASSWORD=${{ secrets.LOGIN_TEST_PASSWORD }}" >> product/.env
 
         # ORDER SERVICE
         echo "MONGODB_ORDER_URI=mongodb://mongodb:27017/order" > order/.env
