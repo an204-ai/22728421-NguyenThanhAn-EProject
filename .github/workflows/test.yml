@@ -40,7 +40,7 @@ jobs:
         echo "PORT=3002" >> order/.env
 
     - name: Start required containers
-      run: docker compose up -d mongo rabbitmq auth product
+      run: docker compose up -d mongo rabbitmq auth
 
     - name: check service run
       run: |
@@ -55,7 +55,7 @@ jobs:
 
     # Dọn RAM sau auth test
     - name: Restart containers for next test
-      run: docker compose restart mongo rabbitmq
+      run: docker compose restart mongo rabbitmq auth
 
     - name: Wait before running product tests
       run: sleep 5
