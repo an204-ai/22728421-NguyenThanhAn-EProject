@@ -26,12 +26,12 @@ describe("Product Service - Full API Test", () => {
       });
 
     authToken = authRes.body.token;
-    //app.start();
+    app.start();
   });
 
   after(async () => {
     await app.disconnectDB();
-    //app.stop();
+    app.stop();
   });
 
   // 🟢 CREATE PRODUCT

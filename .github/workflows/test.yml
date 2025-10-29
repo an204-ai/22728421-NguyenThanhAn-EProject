@@ -42,24 +42,10 @@ jobs:
     - name: Start required containers
       run: docker compose up -d mongo rabbitmq auth product
 
-    - name: Wait for services to start
+    - name: check service run
       run: |
-        echo "⏳ Waiting for MongoDB and services..."
-        sleep 10
         docker compose ps
-    - name: Wait for RabbitMQ and MongoDB
-      run: |
-        echo "⏳ Waiting for RabbitMQ and MongoDB..."
-        for i in {1..20}; do
-          docker exec $(docker ps -qf "name=rabbitmq") rabbitmq-diagnostics ping && \
-          docker exec $(docker ps -qf "name=mongo") mongo --eval "db.adminCommand('ping')" && \
-          echo "✅ Services are ready!" && exit 0
-          echo "Still waiting... ($i)"
-          sleep 3
-        done
-        echo "❌ Timeout waiting for services" && exit 1
-
-
+        
 
     # ---------------- AUTH TEST ----------------
     - name: Run unit tests (auth)
@@ -74,11 +60,11 @@ jobs:
     - name: Wait before running product tests
       run: sleep 5
 
-    # ---------------- PRODUCT TEST ----------------
+       # ---------------- PRODUCT TEST ----------------
     - name: Run unit tests (product)
       run: |
         echo "Running product service tests..."
-        docker exec $(docker ps -qf "name=product") node --max-old-space-size=256 node_modules/.bin/mocha --timeout 20000 src/test/**/*.test.js --exit || exit 1
+        docker compose run --rm product npm test
 
     # ---------------- CLEANUP ----------------
     - name: Stop and remove all containers
