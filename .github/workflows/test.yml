@@ -53,14 +53,7 @@ jobs:
         echo "Running auth service tests..."
         docker exec $(docker ps -qf "name=auth") node --max-old-space-size=256 node_modules/.bin/mocha --timeout 20000 src/test/**/*.test.js --exit || exit 1
 
-    # Dọn RAM sau auth test
-    - name: Restart containers for next test
-      run: docker compose restart mongo rabbitmq auth
-
-    - name: Wait before running product tests
-      run: sleep 5
-
-       # ---------------- PRODUCT TEST ----------------
+    # ---------------- PRODUCT TEST ----------------
     - name: Run unit tests (product)
       run: |
         echo "Running product service tests..."
