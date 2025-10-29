@@ -29,7 +29,15 @@ jobs:
         # PRODUCT SERVICE
         echo "MONGODB_PRODUCT_URI=mongodb://mongodb:27017/product" > product/.env
         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> product/.env
-    
+        echo "RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672" >> product/.env
+
+        # ORDER SERVICE
+        echo "MONGODB_ORDER_URI=mongodb://mongodb:27017/order" > order/.env
+        echo "RABBITMQ_URI=amqp://rabbitmq:5672" >> order/.env
+        echo "RABBITMQ_QUEUE=orders" >> order/.env
+        echo "PORT=3002" >> order/.env
+
+
     - name: Start all Docker containers
       run: docker compose up -d
     
