@@ -57,8 +57,8 @@ jobs:
     # - name: Restart containers for next test
     #   run: docker compose restart mongo rabbitmq product
 
-    # - name: Wait for containers
-    #   run: sleep 15
+    - name: Wait for containers
+      run: sleep 45
 
 
     # ---------------- PRODUCT TEST ----------------
