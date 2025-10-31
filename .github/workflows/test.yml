@@ -40,13 +40,12 @@ jobs:
         echo "PORT=3002" >> order/.env
 
     - name: Start required containers
-      run: docker compose up -d mongo rabbitmq auth product
+      run: docker compose up -d mongo auth 
 
     - name: check service run
       run: |
         docker compose ps
         
-
     # ---------------- RUN UNIT TEST ----------------
     - name: Run unit test
       run: |
