@@ -105,10 +105,11 @@ jobs:
     - name: Save Docker images as artifact
       run: docker save \
         -o images.tar \
-        22728421-nguyenthanhan-eproject-auth \
-        22728421-nguyenthanhan-eproject-product \
-        22728421-nguyenthanhan-eproject-order \
-        22728421-nguyenthanhan-eproject-api-gateway
+        22728421-nguyenthanhan-eproject-auth:latest \
+        22728421-nguyenthanhan-eproject-product:latest \
+        22728421-nguyenthanhan-eproject-order:latest \
+        22728421-nguyenthanhan-eproject-api-gateway:latest
+
 
     - uses: actions/upload-artifact@v4
       with:
