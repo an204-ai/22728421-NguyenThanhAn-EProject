@@ -20,26 +20,52 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    # --- BUILD IMAGES (FAST, CACHED, PARALLEL) ---
-    - name: Build Docker images
+    # ================= BUILD DOCKER IMAGES =================
+    - name: Build Auth image
       uses: docker/build-push-action@v6
       with:
-        context: .
+        context: ./auth
+        file: ./auth/Dockerfile
         push: false
         load: true
+        tags: 22728421-nguyenthanhan-eproject-auth:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        build-args: |
-          NODE_ENV=production
-        tags: |
-          22728421-nguyenthanhan-eproject-auth:latest
-          22728421-nguyenthanhan-eproject-product:latest
-          22728421-nguyenthanhan-eproject-order:latest
-          22728421-nguyenthanhan-eproject-api-gateway:latest
-        # enable parallel build
-        provenance: false
 
-    # --- CREATE .ENV FILES ---
+    - name: Build Product image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./product
+        file: ./product/Dockerfile
+        push: false
+        load: true
+        tags: 22728421-nguyenthanhan-eproject-product:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build Order image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./order
+        file: ./order/Dockerfile
+        push: false
+        load: true
+        tags: 22728421-nguyenthanhan-eproject-order:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build API Gateway image
+      uses: docker/build-push-action@v6
+      with:
+        context: ./api-gateway
+        file: ./api-gateway/Dockerfile
+        push: false
+        load: true
+        tags: 22728421-nguyenthanhan-eproject-api-gateway:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # ================= CREATE ENV FILES =================
     - name: Create environment variable files
       run: |
         # AUTH SERVICE
@@ -61,21 +87,21 @@ jobs:
         echo "RABBITMQ_QUEUE=orders" >> order/.env
         echo "PORT=3002" >> order/.env
 
-    # --- START ONLY NEEDED CONTAINERS ---
+    # ================= START TEST SERVICES =================
     - name: Start required containers
       run: docker compose up -d mongo rabbitmq auth
 
     - name: Check service status
       run: docker compose ps
 
-    # --- RUN TESTS ---
-    - name: Run service tests
+    # ================= RUN UNIT TEST =================
+    - name: Run Auth service tests
       run: |
         echo "Running auth service tests..."
         docker exec $(docker ps -qf "name=auth") \
           node --max-old-space-size=256 node_modules/.bin/mocha --timeout 20000 src/test/**/*.test.js --exit || exit 1
 
-    # --- SAVE DOCKER IMAGES AS ARTIFACTS (FOR DEPLOY JOB) ---
+    # ================= SAVE IMAGES AS ARTIFACT =================
     - name: Save Docker images as artifact
       run: docker save \
         -o images.tar \
@@ -83,12 +109,13 @@ jobs:
         22728421-nguyenthanhan-eproject-product \
         22728421-nguyenthanhan-eproject-order \
         22728421-nguyenthanhan-eproject-api-gateway
+
     - uses: actions/upload-artifact@v4
       with:
         name: docker-images
         path: images.tar
 
-    # --- CLEANUP ---
+    # ================= CLEANUP =================
     - name: Stop and remove containers
       if: always()
       run: docker compose down -v
