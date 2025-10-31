@@ -115,6 +115,8 @@ class ProductController {
     res.status(200).json(pd);
   }
 
+  
+
 
 
 }
