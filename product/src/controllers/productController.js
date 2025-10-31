@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const { param } = require("../routes/productRoutes");
 const messageBroker = require("../utils/messageBroker");
 const uuid = require('uuid');
 
@@ -118,6 +119,8 @@ class ProductController {
   
 
 
+
+  
 
 }
 
