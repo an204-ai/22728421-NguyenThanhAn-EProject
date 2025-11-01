@@ -115,7 +115,6 @@ class ProductController {
     const pd = await Product.findById(req.params.id);
     res.status(200).json(pd);
   }
-
   
 
   
