@@ -47,6 +47,7 @@ services:
 
   product:
     build: ./product
+    restart: always
     expose:
       - "3001"
     env_file:
